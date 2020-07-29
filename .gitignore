@@ -1,0 +1,16 @@
+# raw library files
+glfw/
+glad/
+stb/
+
+# a C++ program used for Test 
+Test/
+
+# local vs config files 
+**/.vs/
+**/Debug/
+**/x64/
+*.sln
+*.vcxproj
+*.filters
+*.user
