@@ -10,6 +10,7 @@ public:
 	void Use();
 
 	void SetUniformInt(std::string name, int n);
+	void SetUniformMat4(std::string name, bool transpose, const float* value);
 
 private:
 

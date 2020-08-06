@@ -80,7 +80,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene)
 	//process all the meshes in current node
 	for (int i = 0; i < node->mNumMeshes; i++)
 	{
-		aiMesh* mesh = scene->mMeshes[i];
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		meshes.push_back(ProcessMesh(mesh, scene));		
 	}
 
@@ -123,7 +123,12 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	//process materials(textures)
 	if (mesh->mMaterialIndex >= 0)
 	{
+		
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		//aiString name;
+		//material->Get(AI_MATKEY_NAME,name);
+		//std::cout << "MATERIAL::NAME::" << name.C_Str() << std::endl;
+
 		std::vector<Texture> diffuse = LoadMaterialTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
 		std::vector<Texture> specular = LoadMaterialTexture(material, aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), diffuse.begin(), diffuse.end());
@@ -216,6 +221,8 @@ unsigned int Model::LoadGenTexture(const std::string& filename)
 
 void Model::Draw(Shader& shader)
 {
+	
 	for (int i = 0; i < meshes.size(); i++)
 		meshes[i].Draw(shader);
+
 }
