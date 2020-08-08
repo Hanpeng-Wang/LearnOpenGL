@@ -11,22 +11,27 @@
 double xlast = 400;
 double ylast = 300;
 
+bool MouseControl = false;
+
 
 void WindowResize_Callback(GLFWwindow* window, int width, int height)
 {
+	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
+	camera->SetPerspective(camera->fov,width,height,camera->near,camera->far);
 	glViewport(0, 0, width, height);
+
 }
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	float xoffset = xpos - xlast;
-	float yoffset = ypos - ylast;
-
-	xlast = xpos;
-	ylast = ypos;
-
-	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
-	camera->Screen2DRotation(xoffset,yoffset);
+	if (MouseControl)
+	{
+		Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
+		camera->Screen2DRotation(xlast, ylast, xpos, ypos);
+	}
+		xlast = xpos;
+		ylast = ypos;
+	
 }
 
 void ProcessKeyboardInput(GLFWwindow* window)
@@ -40,6 +45,15 @@ void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
 	camera->ScreenZoom(yoffset);
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+		MouseControl = true;
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+		MouseControl = false;
 }
 
 int main(int argc, char** argv)
@@ -72,6 +86,9 @@ int main(int argc, char** argv)
 
 	// register framebuffer resize callback
 	glfwSetFramebufferSizeCallback(window,WindowResize_Callback);
+
+	// register mouse button call back
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	
 	//------------------------------------------------------------------------------------
 	//loading model
@@ -79,14 +96,14 @@ int main(int argc, char** argv)
 	
 	//setting camera obj
 	//Camera* camera = new FlyCamera(glm::vec3(0, 0, 10));
-	Camera* camera = new ViewCamera(glm::vec3(0, 0, 10));
+	Camera* camera = new TrackBall(glm::vec3(0, 0, 10));
 	//set pointer to camera in the window system 
 	glfwSetWindowUserPointer(window,(void*)camera);
-	glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_HIDDEN);
 	glfwSetCursorPosCallback(window,cursor_position_callback);
 	glfwSetScrollCallback(window, mouse_scroll_callback);
 
-	camera->SetPerspective(45.0f,800.0f/600.0f,0.1f,100.f);
+	camera->SetPerspective(45.0f,800.0f,600.f,0.1f,100.f);
 
 	//------------------------------------------------------------------------------------
 	Shader shader(vertPath, fragPath);
@@ -99,6 +116,7 @@ int main(int argc, char** argv)
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		glEnable(GL_DEPTH_TEST);
 
 		// rendering
