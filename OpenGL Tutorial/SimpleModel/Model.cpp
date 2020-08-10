@@ -4,6 +4,45 @@
 #include "stb_image.h"
 
 
+LightSource::LightSource(glm::vec3 a, glm::vec3 d, glm::vec3 s): ambient(a), diffuse(d), specular(s)
+{
+	this->lightPos = glm::vec3(0.0f);
+	this->lightDir = glm::vec3(0.0f);;
+
+	this->constant = 1.0;
+	this->linear = 0.09f;
+	this->quadratic = 0.032f;
+
+	this->innerCone = 0.0f;
+	this->outerCone = 0.0f;
+
+	this->type = LIGHT_SOURCE_UNDEFINED;
+	this->name = "";
+}
+
+void LightSource::SetPointlight(glm::vec3 pos, float constant, float linear, float quadratic)
+{
+	this->lightPos = pos;
+	this->constant = constant;
+	this->linear = linear;
+	this->quadratic = quadratic;
+	this->type = LIGHT_SOURCE_POINT;
+}
+
+void LightSource::SetDirlight(glm::vec3 lightDir)
+{
+	this->lightDir = lightDir;
+}
+
+void LightSource::SetSpotlight(glm::vec3 pos, glm::vec3 lightDir, float innerCone, float outerCone)
+{
+	this->lightPos = pos;
+	this->lightDir = lightDir;
+	this->innerCone = innerCone;
+	this->outerCone = outerCone;
+}
+
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<Texture> textures, std::vector<unsigned int> indices)
 {
 	this->vertices = vertices;
@@ -43,13 +82,20 @@ void Mesh::Draw(Shader& shader)
 {
 
 
-	int DiffuseIndex;
-	for (DiffuseIndex = 0; DiffuseIndex < textures.size(); DiffuseIndex++)
-		if (textures[DiffuseIndex].type == "texture_diffuse") break;
+	for (int i = 0; i < textures.size(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D,textures[i].id);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textures[DiffuseIndex].id);
-	shader.SetUniformInt("TextureImg",0);
+		if(textures[i].type == "texture_diffuse")
+			shader.SetUniformInt("material.diffuseMap",i);
+
+		if (textures[i].type == "texture_specular")
+			shader.SetUniformInt("material.specularMap", i);
+		
+	}
+
+	shader.SetUniformInt("material.shiness", 32);
 
 	//bind vertex array
 	glBindVertexArray(VAO);

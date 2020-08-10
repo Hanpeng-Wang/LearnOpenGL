@@ -3,7 +3,11 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 
-
+std::ostream& operator <<(std::ostream& out, const glm::vec3 p)
+{
+	out << p.x << ", " << p.y << ", " << p.z;
+	return out;
+}
 
 Camera::Camera(glm::vec3 Pos, glm::vec3 front, glm::vec3 up) :CameraPos(Pos), CameraFront(front), CameraUp(up)
 {
@@ -15,7 +19,8 @@ Camera::Camera(glm::vec3 Pos, glm::vec3 front, glm::vec3 up) :CameraPos(Pos), Ca
 
 	this->sensitivity = 0.1f;
 
-	this->view = glm::lookAt(CameraPos, WorldCenter, WorldUp);
+	this->model = glm::mat4(1.0f);
+	this->view = glm::lookAt(CameraPos, CameraPos + front, WorldUp);
 	this->SetPerspective(45.0f, 800.f, 600.f, 0.1f, 100.0f);
 }
 
@@ -43,6 +48,11 @@ glm::mat4& Camera::GetViewMatrix()
 glm::mat4& Camera::GetProjectionMatrix()
 {
 	return this->projection;
+}
+
+glm::mat4& Camera::GetModelMatrix()
+{
+	return this->model;
 }
 
 
@@ -104,7 +114,6 @@ void FlyCamera::UpdateEulerAngles(float pitch_update, float yaw_update)
 ViewCamera::ViewCamera(glm::vec3 Pos, glm::vec3 front, glm::vec3 up) : Camera(Pos, front, up)
 {
 	this->sensitivity = 0.5f;
-	this->yaw = 90.0f;
 }
 
 void ViewCamera::Screen2DRotation(float xlast, float ylast, float xnew, float ynew)
@@ -128,18 +137,14 @@ void ViewCamera::UpdateEulerAngles(float pitch_update, float yaw_update)
 	if (this->pitch < -89.0f)
 		this->pitch = -89.0f;
 
-	glm::vec3 new_pos;
-	new_pos.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-	new_pos.y = sin(glm::radians(pitch));
-	new_pos.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
 
-	this->CameraPos = glm::length(CameraPos) * glm::normalize(new_pos);
-	CameraFront = glm::normalize(-CameraPos);
+	glm::vec3 pitch_axis = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 yaw_axis = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	glm::vec3 right = glm::cross(CameraFront, WorldUp);
-	this->CameraUp = glm::normalize(glm::cross(right, CameraFront));
+	glm::mat4 pitchRotation = glm::rotate(glm::radians(this->pitch),pitch_axis);
+	glm::mat4 yawRotation = glm::rotate(glm::radians(this->yaw),yaw_axis);
 
-	this->view = glm::lookAt(CameraPos, WorldCenter, CameraUp);
+	this->view =glm::lookAt(CameraPos,CameraPos+CameraFront,WorldUp)*pitchRotation * yawRotation;
 }
 
 void ViewCamera::ScreenZoom(float yoffset)
@@ -156,7 +161,9 @@ void ViewCamera::ScreenZoom(float yoffset)
 
 TrackBall::TrackBall(glm::vec3 Pos, glm::vec3 front, glm::vec3 up) : Camera(Pos, front, up)
 {
-	this->model = glm::mat4(1.0f);
+	this->RotationCenter = glm::vec3(0.0f);
+	this->ModelInner = glm::mat4(1.0f);
+	this->model = glm::translate(glm::mat4(1.0f),RotationCenter)*ModelInner*glm::translate(glm::mat4(1.0f),-RotationCenter);
 }
 
 void TrackBall::Screen2DRotation(float xlast, float ylast, float xnew, float ynew)
@@ -164,12 +171,25 @@ void TrackBall::Screen2DRotation(float xlast, float ylast, float xnew, float yne
 	glm::vec3 p1 = Screen2VirtualBall(xlast, ylast);
 	glm::vec3 p2 = Screen2VirtualBall(xnew,ynew);
 
+	//std::cout << "1" << std::endl;
+
+	if (p1 == p2)
+		return;
+
 	glm::vec3 Raxis = glm::normalize(glm::cross(p1, p2));
 
-	float d = glm::acos(glm::dot(p1, p2));
+	if (glm::dot(p1, p2) > 1.0)
+		return;
 
-	this->model = glm::rotate(d, Raxis) * model;
-	this->view = glm::lookAt(CameraPos, WorldCenter, WorldUp) * model;
+	float d = glm::acos(glm::dot(p1, p2));
+	
+	
+
+	this->ModelInner = glm::rotate(d, Raxis) * ModelInner;
+	this->model = glm::translate(glm::mat4(1.0f), RotationCenter) * ModelInner * glm::translate(glm::mat4(1.0f), -RotationCenter);
+	//std::cout << p1 << "    " << p2 << "   " << d << std::endl;
+	//std::cout << this->model[0][0] << std::endl;
+	
 }
 
 glm::vec3 TrackBall::Screen2VirtualBall(float x, float y)
@@ -208,4 +228,10 @@ void TrackBall::ScreenZoom(float yoffset)
 	this->projection = glm::perspective(glm::radians(fov), width / height, near, far);
 
 	
+}
+
+void TrackBall::SetRotationCenter(glm::vec3 r)
+{
+	this->RotationCenter = r;
+
 }

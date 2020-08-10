@@ -23,6 +23,7 @@ public:
 	float far;
 	float sensitivity;
 
+	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 projection;
 
@@ -33,8 +34,10 @@ public:
 	virtual void Screen2DRotation(float xlast,float ylast, float xnew,float ynew) = 0;
 	virtual void ScreenZoom(float yoffset) = 0;
 
+	glm::mat4& GetModelMatrix();
     glm::mat4& GetViewMatrix();
     glm::mat4& GetProjectionMatrix();
+
 };
 
 class FlyCamera: public Camera
@@ -70,9 +73,12 @@ public:
 	void ScreenZoom(float yoffset);
 
 	glm::vec3 Screen2VirtualBall(float x, float y);
+	void SetRotationCenter(glm::vec3 r);
 
 private:
-	glm::mat4 model;
+	glm::vec3 RotationCenter;
+	glm::mat4 ModelInner;
+
 };
 	
 

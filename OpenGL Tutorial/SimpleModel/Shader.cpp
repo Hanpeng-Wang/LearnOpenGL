@@ -107,3 +107,13 @@ void Shader::SetUniformMat4(std::string name, bool transpose, const float* value
 {
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID,name.c_str()),1,transpose,value);
 }
+
+void Shader::SetUniformVec3(std::string name, const float* value)
+{
+	glUniform3fv(glGetUniformLocation(ProgramID, name.c_str()),1,value);
+}
+
+void Shader::SetUniformf(std::string name, float f)
+{
+	glUniform1f(glGetUniformLocation(ProgramID, name.c_str()), f);
+}
