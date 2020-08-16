@@ -7,8 +7,6 @@ class Shader
 public:
 	unsigned int ProgramID;
 	Shader(std::string vertShader, std::string fragShader);
-
-	void SetUpGeometryShader(std::string geomShader);
 	void Use();
 
 	void SetUniformInt(std::string name, int n);

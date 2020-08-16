@@ -17,7 +17,8 @@ Shader::Shader(std::string vertShader, std::string fragShader)
 	fragStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
 	try
-	{   
+	{
+		std::string line;
 		// read vertex shader
 		vertStream.open(vertShader);	
 
@@ -90,57 +91,6 @@ Shader::Shader(std::string vertShader, std::string fragShader)
 
 	glDeleteShader(vert);
 	glDeleteShader(frag);
-}
-
-void Shader::SetUpGeometryShader(std::string geomShader)
-{
-	std::ifstream geomStream;
-	std::string geomCode;
-
-	geomStream.exceptions(std::ifstream::failbit|std::ifstream::badbit);
-
-	try 
-	{
-		geomStream.open(geomShader);
-
-		std::stringstream geomStringStream;
-		geomStringStream << geomStream.rdbuf();
-
-		geomStream.close();
-		geomCode = geomStringStream.str();
-	}
-	catch(std::ifstream::failure e)
-	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-	}
-
-	unsigned int geom = glCreateShader(GL_GEOMETRY_SHADER);
-	const char* geomptr = geomCode.c_str();
-
-	glShaderSource(geom,1,&geomptr,NULL);
-
-	int success;
-	char infoLog[512];
-
-	glCompileShader(geom);
-	glGetShaderiv(geom,GL_COMPILE_STATUS,&success);
-	if (!success)
-	{
-		glGetShaderInfoLog(geom,512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	glAttachShader(ProgramID,geom);
-	glLinkProgram(ProgramID);
-
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(ProgramID, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-
-	glDeleteShader(geom);
 }
 
 void Shader::Use()

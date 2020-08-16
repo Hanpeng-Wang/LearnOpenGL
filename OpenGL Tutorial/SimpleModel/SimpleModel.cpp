@@ -12,6 +12,7 @@ double xlast = 400;
 double ylast = 300;
 
 bool MouseControl = false;
+bool ShowNormal = false;
 
 
 void WindowResize_Callback(GLFWwindow* window, int width, int height)
@@ -37,7 +38,6 @@ void ProcessKeyboardInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
 }
 
 void mouse_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
@@ -55,6 +55,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		MouseControl = false;
 }
 
+void key_callback(GLFWwindow* window, int button, int scancode, int action, int mods)
+{
+	if (button == GLFW_KEY_N && action == GLFW_PRESS)
+		if (ShowNormal) ShowNormal = false;
+		else ShowNormal = true;
+}
+
 int main(int argc, char** argv)
 {
 	//------------------------------------------------------------------------------------
@@ -62,9 +69,10 @@ int main(int argc, char** argv)
 	//configure glfw context
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GL_SAMPLES, 4);
 
 	// create window
-	GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleTriangle", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "SimpleModel", NULL, NULL);
 	
 	if (window == NULL)
 	{
@@ -88,18 +96,16 @@ int main(int argc, char** argv)
 
 	// register mouse button call back
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetKeyCallback(window, key_callback);
 	
-
-	//------------------------------------------------------------------------------------
-	Shader shader(vertPath, fragPath);
 
 	//------------------------------------------------------------------------------------
 	//loading model
 	Model model(ModelPath);
 	
 	//setting camera obj
-	TrackBall CameraControl(glm::vec3(0, 1, 4));
-	CameraControl.SetRotationCenter(glm::vec3(0,1,0));
+	TrackBall CameraControl(glm::vec3(0, 0, 5));
+	CameraControl.SetRotationCenter(glm::vec3(0,0,0));
 	Camera* camera = &CameraControl;
 	//set pointer to camera in the window system 
 	glfwSetWindowUserPointer(window,(void*)camera);
@@ -118,7 +124,8 @@ int main(int argc, char** argv)
 	LightSource DirLight(glm::vec3(0.2f), glm::vec3(0.8f), glm::vec3(1.0f));
 	DirLight.SetDirlight(glm::vec3(0, -1.0f, 0.0f));
 	
-
+	//------------------------------------------------------------------------------------
+	Shader shader(vertPath, fragPath);
 
 	shader.Use();
 	shader.SetUniformInt("PointlightNum", 1);
@@ -136,27 +143,44 @@ int main(int argc, char** argv)
 	shader.SetUniformVec3("Dirlights[0].diffuse", glm::value_ptr(DirLight.diffuse));
 	shader.SetUniformVec3("Dirlights[0].specular", glm::value_ptr(DirLight.specular));
 
+	//------------------------------------------------------------------------------------
+	Shader Nview_shader(Nview_vertpath,Nview_fragpath);
+	Nview_shader.SetUpGeometryShader(Nview_geompath);
+
+
+
+
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
 		
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
 
 		// rendering
 		glClearColor(0.6f, 0.6f, 0.6f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		shader.Use();
-
-		
-
 		shader.SetUniformVec3("wCameraPos",glm::value_ptr(camera->CameraPos));
 		shader.SetUniformMat4("model",GL_FALSE,glm::value_ptr(camera->GetModelMatrix()));
 		shader.SetUniformMat4("view",GL_FALSE,glm::value_ptr(camera->GetViewMatrix()));
 		shader.SetUniformMat4("projection", GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
 		
-		
 		model.Draw(shader);
+
+
+		//------------------------------------------------------------------------------------
+		if (ShowNormal)
+		{
+			Nview_shader.Use();
+			Nview_shader.SetUniformMat4("model", GL_FALSE, glm::value_ptr(camera->GetModelMatrix()));
+			Nview_shader.SetUniformMat4("view", GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
+			Nview_shader.SetUniformMat4("projection", GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
+
+			model.Draw(Nview_shader);
+		}
+
 	
 		glfwSwapBuffers(window);
 		ProcessKeyboardInput(window);

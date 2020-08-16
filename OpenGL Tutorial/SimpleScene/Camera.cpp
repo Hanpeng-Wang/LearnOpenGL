@@ -113,6 +113,7 @@ void FlyCamera::UpdateEulerAngles(float pitch_update, float yaw_update)
 
 ViewCamera::ViewCamera(glm::vec3 Pos, glm::vec3 front, glm::vec3 up) : Camera(Pos, front, up)
 {
+	this->yaw = 90.0f;
 	this->sensitivity = 0.5f;
 }
 
