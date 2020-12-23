@@ -4,7 +4,6 @@ glad/
 stb/
 assimp/
 glm-0.9.9.8/
-3D model/
 
 # a C++ program used for Test 
 Test/
@@ -13,7 +12,3 @@ Test/
 **/.vs/
 **/Debug/
 **/x64/
-*.sln
-*.vcxproj
-*.filters
-*.user

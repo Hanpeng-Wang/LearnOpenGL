@@ -14,5 +14,7 @@ void main()
     float ratio = 1.00/1.52;
     vec3 viewDir = normalize(CameraPos - wPosition);
     vec3 refractDir = refract(viewDir,wNormal,ratio);
-    FragColor = texture(skybox,refractDir);
+    vec4 texcolor = texture(skybox,refractDir);
+    float gamma = 2.2;
+    FragColor = vec4(pow(texcolor.rgb, vec3(1.0/gamma)),1.0);
 }

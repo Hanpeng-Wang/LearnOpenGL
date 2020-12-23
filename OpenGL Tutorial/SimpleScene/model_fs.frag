@@ -14,5 +14,7 @@ void main()
    vec3 viewDir = normalize(wPosition - CameraPos);
    vec3 r = reflect(viewDir,wNormal);
    //vec3 r = refract(viewDir,wNormal,ratio);
-   FragColor = texture(skybox,r);
+   vec4 texcolor = texture(skybox,r);
+   float gamma = 2.2;
+   FragColor = vec4(pow(texcolor.rgb, vec3(1.0/gamma)),1.0);
 }

@@ -3,10 +3,12 @@
 #include<glm/gtx/transform.hpp>
 #include<iostream>
 #include"Camera.h"
-#include"Shader.h"
 #include"Filepath.h"
 #include"stb_image.h"
 #include"Model.h"
+
+
+// Key W: switch between windowed mode and full screen mode
 
 bool MouseControl = false;
 double xlast = 400;
@@ -125,7 +127,7 @@ int main(int argc, char** argv)
 {
 	//------------------------------------------------------------------------------------
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_SAMPLES,4);
 
@@ -181,20 +183,20 @@ int main(int argc, char** argv)
     Shader skybox_shader(skybox_vertPath,skybox_fragPath);
     skybox_shader.Use();  
     skybox_shader.SetUniformInt("skybox",0);
-    glUniformBlockBinding(skybox_shader.ProgramID,glGetUniformBlockIndex(skybox_shader.ProgramID,"Matrices"),7);
+    glUniformBlockBinding(skybox_shader.ProgramID,glGetUniformBlockIndex(skybox_shader.ProgramID,"Matrices"),0);
 
 	//------------------------------------------------------------------------------------
     Model teapot(utah_teapot);
     Shader teapot_shader(model_vertPath, model_fragPath);
     teapot_shader.Use();
     teapot_shader.SetUniformInt("skybox", 0);
-    glUniformBlockBinding(teapot_shader.ProgramID,glGetUniformBlockIndex(teapot_shader.ProgramID,"Matrices"),7);
+    glUniformBlockBinding(teapot_shader.ProgramID,glGetUniformBlockIndex(teapot_shader.ProgramID,"Matrices"),0);
     //------------------------------------------------------------------------------------
     Model sphere(sphere_path);
     Shader sphere_shader(sphere_vertshader,sphere_fragshader);
     sphere_shader.Use();
     sphere_shader.SetUniformInt("skybox",0);
-    glUniformBlockBinding(sphere_shader.ProgramID, glGetUniformBlockIndex(sphere_shader.ProgramID, "Matrices"), 7);
+    glUniformBlockBinding(sphere_shader.ProgramID, glGetUniformBlockIndex(sphere_shader.ProgramID, "Matrices"), 0);
 
 
     glm::mat4* sphereOffset;
@@ -224,7 +226,7 @@ int main(int argc, char** argv)
     glBufferData(GL_UNIFORM_BUFFER, 128, NULL, GL_STATIC_DRAW); //size calculated in shaders
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    glBindBufferRange(GL_UNIFORM_BUFFER, 7, Matrices_NBO, 0, 128);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, Matrices_NBO, 0, 128);
 
 
 
@@ -260,6 +262,7 @@ int main(int argc, char** argv)
 	{
         glEnable(GL_MULTISAMPLE);
         glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_FRAMEBUFFER_SRGB);
         glClearColor(0.0f,0.0f,0.0f,0.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -288,6 +291,9 @@ int main(int argc, char** argv)
         glBufferSubData(GL_UNIFORM_BUFFER, 64, 64, glm::value_ptr(camera->GetProjectionMatrix()));
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
         //------------------------------------------------------------------------------------
+        
+        /*
+        glDepthFunc(GL_LEQUAL);
         skybox_shader.Use();
         //skybox_shader.SetUniformMat4("view",GL_FALSE,glm::value_ptr(camera->GetViewMatrix()));
         //skybox_shader.SetUniformMat4("projection",GL_FALSE,glm::value_ptr(camera->GetProjectionMatrix()));
@@ -298,7 +304,7 @@ int main(int argc, char** argv)
         //glBindBuffer(GL_UNIFORM_BUFFER,Matrices_NBO);
         glDrawArrays(GL_TRIANGLES,0,36);
         glDepthMask(GL_TRUE);
-
+        */
         //------------------------------------------------------------------------------------
         teapot_shader.Use();
         glm::mat4 teapot_model = glm::translate(glm::mat4(1.0f), glm::vec3(0, -0.5f, 0.0f));
@@ -323,7 +329,15 @@ int main(int argc, char** argv)
             glBindVertexArray(0);
         }
 
-
+        glDepthFunc(GL_LEQUAL);
+        skybox_shader.Use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindVertexArray(VAO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP,skyboxMap);
+        glBindFramebuffer(GL_FRAMEBUFFER,0);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        
 
         //------------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
@@ -351,16 +365,16 @@ unsigned int LoadGenCubeMap(std::vector<std::string> CubeMapFile)
         {
             std::cout << "ERROR::TEXTURE::FAILED TO LOAD TEXTURE: " <<CubeMapFile[i] << std::endl;
         }
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,0,GL_SRGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,data);
         stbi_image_free(data);
     }
 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    
+    glBindTexture(GL_TEXTURE_CUBE_MAP,0);
     return CubeTexture;
 
 }

@@ -3,16 +3,35 @@
 #include<iostream>
 #include "Filepath.h"
 #include "stb_image.h"
-#include "Shader.h"
+//#include "Shader.h"
 #include "Model.h"
 #include "Camera.h"
 
 
+// Key B: switch between Phong lighting model and Blin-Phong lightning model
+// Key N: show normal vector
+// Key S: show specular light
+
+// vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+float quadVertices[] = { 
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+};
+
 double xlast = 400;
 double ylast = 300;
 
+int window_w = 800;
 bool MouseControl = false;
 bool ShowNormal = false;
+bool Blin_Phone = true;
+bool Showspec = true;
 
 
 void WindowResize_Callback(GLFWwindow* window, int width, int height)
@@ -20,6 +39,8 @@ void WindowResize_Callback(GLFWwindow* window, int width, int height)
 	Camera* camera = (Camera*)glfwGetWindowUserPointer(window);
 	camera->SetPerspective(camera->fov,width,height,camera->near,camera->far);
 	glViewport(0, 0, width, height);
+
+	window_w = width;
 
 }
 
@@ -57,9 +78,18 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void key_callback(GLFWwindow* window, int button, int scancode, int action, int mods)
 {
-	if (button == GLFW_KEY_N && action == GLFW_PRESS)
+	if(button == GLFW_KEY_N && action == GLFW_PRESS)
 		if (ShowNormal) ShowNormal = false;
 		else ShowNormal = true;
+
+	if (button == GLFW_KEY_B && action == GLFW_PRESS)
+		if (Blin_Phone) Blin_Phone = false;
+		else Blin_Phone = true;
+
+	if (button == GLFW_KEY_S && action == GLFW_PRESS)
+		if (Showspec) Showspec = false;
+		else Showspec = true;
+
 }
 
 int main(int argc, char** argv)
@@ -104,8 +134,8 @@ int main(int argc, char** argv)
 	Model model(ModelPath);
 	
 	//setting camera obj
-	TrackBall CameraControl(glm::vec3(0, 0, 5));
-	CameraControl.SetRotationCenter(glm::vec3(0,0,0));
+	TrackBall CameraControl(glm::vec3(0, 1, 5));
+	CameraControl.SetRotationCenter(glm::vec3(0,1,0));
 	Camera* camera = &CameraControl;
 	//set pointer to camera in the window system 
 	glfwSetWindowUserPointer(window,(void*)camera);
@@ -147,6 +177,50 @@ int main(int argc, char** argv)
 	Shader Nview_shader(Nview_vertpath,Nview_fragpath);
 	Nview_shader.SetUpGeometryShader(Nview_geompath);
 
+	Shader ScreenQuad(Screen_vertpath,Screen_fragpath);
+	ScreenQuad.Use();
+	ScreenQuad.SetUniformInt("QuadTexture",0);
+
+	//------------------------------------------------------------------------------------
+	// configure framebuffer obj
+	unsigned int hdrFBO;
+	glGenFramebuffers(1, &hdrFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER,hdrFBO);
+
+	// color buffer
+	unsigned int colorbuffer;
+	glGenTextures(1,&colorbuffer);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, colorbuffer);
+	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB16F,800,600,0,GL_RGB,GL_FLOAT,NULL);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,colorbuffer,0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	 
+	//depth and stencil buffer
+	unsigned int DepthRBO;
+	glGenRenderbuffers(1, &DepthRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER,DepthRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,800,600);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,DepthRBO);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	unsigned int quadVAO;
+	unsigned int quadVBO;
+	glGenVertexArrays(1,&quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(quadVertices),quadVertices,GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float),(void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2*sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
 
 
 
@@ -156,20 +230,26 @@ int main(int argc, char** argv)
 		
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		// rendering
 		glClearColor(0.6f, 0.6f, 0.6f, 0.0f);
+
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+		//glViewport(0,0,800,600);
+
 		shader.Use();
+		shader.SetUniformInt("Blin",Blin_Phone);
+		shader.SetUniformInt("w",window_w);
+		shader.SetUniformInt("ifspec",Showspec);
 		shader.SetUniformVec3("wCameraPos",glm::value_ptr(camera->CameraPos));
 		shader.SetUniformMat4("model",GL_FALSE,glm::value_ptr(camera->GetModelMatrix()));
 		shader.SetUniformMat4("view",GL_FALSE,glm::value_ptr(camera->GetViewMatrix()));
 		shader.SetUniformMat4("projection", GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
 		
 		model.Draw(shader);
-
-
 		//------------------------------------------------------------------------------------
 		if (ShowNormal)
 		{
@@ -181,6 +261,21 @@ int main(int argc, char** argv)
 			model.Draw(Nview_shader);
 		}
 
+		/*
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		
+		int f_w, f_h;
+		glfwGetFramebufferSize(window,&f_w,&f_h);
+		glViewport(0, 0, f_w, f_h);
+		
+
+		ScreenQuad.Use();
+		glBindVertexArray(quadVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorbuffer);
+		glDrawArrays(GL_TRIANGLES,0,6);
+		*/
 	
 		glfwSwapBuffers(window);
 		ProcessKeyboardInput(window);

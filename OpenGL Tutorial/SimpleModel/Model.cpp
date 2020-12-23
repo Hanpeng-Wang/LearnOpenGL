@@ -52,6 +52,13 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<Texture> textures, std::vec
 	SetUp();
 }
 
+Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<Texture>&& textures, std::vector<unsigned int>&& indices)
+{
+	this->vertices = std::move(vertices);
+	this->textures = std::move(textures);
+	this->indices = std::move(indices);
+}
+
 void Mesh::SetUp()
 {
 	glGenVertexArrays(1,&VAO);
@@ -76,6 +83,8 @@ void Mesh::SetUp()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size()*sizeof(unsigned int),&indices[0],GL_STATIC_DRAW);
 	
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Mesh::Draw(Shader& shader)

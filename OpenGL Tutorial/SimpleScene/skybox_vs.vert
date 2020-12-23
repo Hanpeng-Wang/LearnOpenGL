@@ -14,6 +14,7 @@ void main()
 {
    mat4 new_view = mat4(mat3(view));
    gl_Position = projection * new_view * vec4(Pos,1.0f);
+   gl_Position = gl_Position.xyww;
    TexCoord = Pos;
 }
  
