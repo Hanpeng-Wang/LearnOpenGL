@@ -142,10 +142,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="glad.c" />
     <ClCompile Include="TextureViewer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Filepath.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CameraLibrary\CameraLibrary.vcxproj">
+      <Project>{75468303-51aa-44a4-8a2d-0fad9b390435}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ModelLibrary\ModelLibrary.vcxproj">
+      <Project>{08151a67-23a9-4297-acb7-a64e2baeb205}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="skybox.frag" />
+    <None Include="skybox.vert" />
+    <None Include="sphere.frag" />
+    <None Include="sphere.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

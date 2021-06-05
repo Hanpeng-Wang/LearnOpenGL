@@ -155,7 +155,7 @@ int main(int argc, char** argv)
     glfwSetKeyCallback(window, key_callback);
 	//------------------------------------------------------------------------------------
     // setting up camera
-    Camera* camera = new ViewCamera(glm::vec3(0.0f, 0.0f, 3.0f));
+    Camera* camera = new ViewCamera(glm::vec3(0.0f, 0.0f, 5.0f));
     camera->SetPerspective(45.0f,800.0f,600.0f,0.1f,100.0f);
 
     glfwSetWindowUserPointer(window,(void*)camera);

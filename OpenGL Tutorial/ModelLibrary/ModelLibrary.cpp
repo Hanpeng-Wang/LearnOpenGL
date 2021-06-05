@@ -226,6 +226,10 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Texture>& text
 
 	SetUp();
 }
+Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<Texture>&& textures, std::vector<unsigned int>&& indices): vertices(vertices), textures(textures), indices(indices)
+{
+	SetUp();
+}
 
 void Mesh::SetUp()
 {
@@ -425,12 +429,12 @@ unsigned int Model::LoadGenTexture(const std::string& filename,aiTextureType typ
 		break;
 	case 3:
 		format = GL_RGB;
-		if (type == aiTextureType_DIFFUSE) Internalformat = GL_SRGB;
+		if (type == aiTextureType_DIFFUSE) Internalformat = GL_RGB;
 		else Internalformat = GL_RGB;	
 		break;
 	case 4:
 		format = GL_RGBA;
-		if (type == aiTextureType_DIFFUSE) Internalformat = GL_SRGB_ALPHA;
+		if (type == aiTextureType_DIFFUSE) Internalformat = GL_RGBA;
 		else Internalformat = GL_RGBA;
 		break;
 

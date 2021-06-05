@@ -2,13 +2,13 @@
 #include<string>
 
 
-std::string vertPath = "./VertShader.vert";
-std::string fragPath = "./FragShader.frag";
-std::string Nview_vertpath = "./NormalView.vert";
-std::string Nview_fragpath = "./NormalView.frag";
-std::string Nview_geompath = "./NormalView.geom";
-std::string Screen_vertpath = "./ScreenQuad.vert";
-std::string Screen_fragpath = "./ScreenQuad.frag";
+std::string vertPath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/VertShader.vert";
+std::string fragPath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/FragShader.frag";
+std::string Nview_vertpath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/NormalView.vert";
+std::string Nview_fragpath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/NormalView.frag";
+std::string Nview_geompath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/NormalView.geom";
+std::string Screen_vertpath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/ScreenQuad.vert";
+std::string Screen_fragpath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/ScreenQuad.frag";
 
 std::string TexImage1 = "./wall.jpg";
 std::string TexImage2 = "./awesomeface.png";

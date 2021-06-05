@@ -53,24 +53,24 @@ vec3 ComputePointlight(bool Blin_Phong);
 
 void main()
 {
+  vec3 PointlightColor;
+   vec3 DirlightColor;
   if(Blin)
   {
-   vec3 PointlightColor = ComputePointlight(true);
-   vec3 DirlightColor = ComputeDirlight(true);
-   FragColor = vec4(PointlightColor + DirlightColor,1.0f);
+   PointlightColor = ComputePointlight(true);
+   DirlightColor = ComputeDirlight(true);
   }
   else
   {
 
-   vec3 PointlightColor = ComputePointlight(false);
-   vec3 DirlightColor = ComputeDirlight(false);
-   FragColor = vec4(PointlightColor + DirlightColor,1.0f);
+   PointlightColor = ComputePointlight(false);
+   DirlightColor = ComputeDirlight(false);
   }
 
-  if(FragColor.r >1.0 ||FragColor.g >1.0||FragColor.b >1.0)
-      FragColor = vec4(0,1,0,1);
+  vec3 hdrColor = PointlightColor + DirlightColor;
+  vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
 
-   //FragColor = texture(material.diffuseMap,TexCoord_frag);
+  FragColor = vec4(mapped, 1.0);
 }
 
 
@@ -79,28 +79,28 @@ vec3 ComputeDirlight(bool Blin_Phong)
    vec3 ambientStren = vec3(0.0);
    vec3 diffuseStren = vec3(0.0);
    vec3 specularStren = vec3(0.0);
+   vec3 Normals = normalize(wNormal);
 
    for(int i=0; i<DirlightNum; i++)
    {
      vec3 lightDir = normalize(-Dirlights[i].lightDir);
      ambientStren += Dirlights[i].ambient;
 
-     float diff = max(dot(lightDir,wNormal),0.0);
+     float diff = max(dot(lightDir,Normals),0.0);
      diffuseStren += diff*Dirlights[i].diffuse;
      
      float spec;
 
+     vec3 viewDir = normalize(wCameraPos - wPosition);
      if(!Blin_Phong)
      {
-       vec3 reflectDir = reflect(-lightDir,wNormal);
-       vec3 viewDir = normalize(wCameraPos - wPosition);
+       vec3 reflectDir = normalize(reflect(-lightDir,Normals));
        spec = pow(max(dot(reflectDir,viewDir),0.0), material.shiness);
      }
      else
      {
-       vec3 viewDir = normalize(wCameraPos - wPosition);
        vec3 halfwayDir = normalize(viewDir + lightDir);
-       spec = pow(max(dot(wNormal,halfwayDir),0.0), 2*material.shiness);
+       spec = pow(max(dot(Normals,halfwayDir),0.0), 2*material.shiness);
      }
 
      if(!ifspec)
@@ -110,8 +110,7 @@ vec3 ComputeDirlight(bool Blin_Phong)
 
    vec3 Color1 = (ambientStren + diffuseStren)* texture(material.diffuseMap, TexCoord_frag).rgb;
    vec3 Color2 = specularStren*texture(material.specularMap,TexCoord_frag).rgb;
-   //Color1 = vec3(0,0,0);
-   return(Color1 + Color2);
+   return(Color2);
 }
 
 
@@ -120,6 +119,7 @@ vec3 ComputePointlight(bool Blin_Phong)
    vec3 ambientStren = vec3(0.0);
    vec3 diffuseStren = vec3(0.0);
    vec3 specularStren = vec3(0.0);
+    vec3 Normals = normalize(wNormal);
 
    for(int i=0; i<PointlightNum; i++)
    {
@@ -128,22 +128,22 @@ vec3 ComputePointlight(bool Blin_Phong)
       float attenuation = 1.0/(pointlights[i].constant + pointlights[i].linear*d + pointlights[i].quadratic*d*d);
       ambientStren += pointlights[i].ambient*attenuation;
 
-      float diff = max(dot(lightDir,wNormal),0.0);
+      float diff = max(dot(lightDir,Normals),0.0);
       diffuseStren += diff*pointlights[i].diffuse*attenuation;
       
       float spec;
 
+      vec3 viewDir = normalize(wCameraPos - wPosition);
       if(!Blin_Phong)
       {
-        vec3 viewDir = normalize(wCameraPos - wPosition);
-        vec3 reflectDir = reflect(-lightDir,wNormal);
+        
+        vec3 reflectDir = normalize(reflect(-lightDir,Normals));
         spec = pow(max(dot(viewDir,reflectDir),0.0),material.shiness);
       }
       else
       {
-        vec3 viewDir = normalize(wCameraPos - wPosition);
         vec3 halfwayDir = normalize(viewDir + lightDir);
-        spec = pow(max(dot(wNormal,halfwayDir),0.0), 2*material.shiness);
+        spec = pow(max(dot(Normals,halfwayDir),0.0), 2*material.shiness);
       }
       if(!ifspec)
         spec = 0.0;
@@ -152,8 +152,7 @@ vec3 ComputePointlight(bool Blin_Phong)
 
    vec3 Color1 = (ambientStren + diffuseStren)*texture(material.diffuseMap,TexCoord_frag).rgb;
    vec3 Color2 = specularStren*texture(material.specularMap,TexCoord_frag).rgb;
-   //Color1 = vec3(0,0,0);
-   return (Color1 + Color2);
+   return (Color2);
 }
    
 

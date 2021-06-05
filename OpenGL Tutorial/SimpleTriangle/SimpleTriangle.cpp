@@ -38,7 +38,6 @@ unsigned int indices[] = {  // note that we start from 0!
 #endif
 
 
-
 void WindowResize_Callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -144,10 +143,6 @@ int main(int argc, char** argv)
 	//------------------------------------------------------------------------------------
 	Shader shader(vertPath, fragPath);
 
-	
-
-
-
 
 #ifdef Triangle
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -183,7 +178,6 @@ int main(int argc, char** argv)
 	// rendering loop
 	while (!glfwWindowShouldClose(window))
 	{
-
 
 		// rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

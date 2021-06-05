@@ -18,10 +18,27 @@
     <ClCompile Include="TextureViewer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Filepath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sphere.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="sphere.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skybox.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="skybox.frag">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

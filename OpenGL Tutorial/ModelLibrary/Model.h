@@ -25,8 +25,6 @@ public:
 
 private:
 
-
-
 };
 
 enum class LightType { LIGHT_SOURCE_UNDEFINED, LIGHT_SOURCE_SPOT, LIGHT_SOURCE_POINT, LIGHT_SOURCE_DIRECTIONAL };
