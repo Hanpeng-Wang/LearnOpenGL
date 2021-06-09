@@ -230,7 +230,7 @@ int main(int argc, char** argv)
 		
 		glEnable(GL_DEPTH_TEST);
 		//glEnable(GL_MULTISAMPLE);
-		//glEnable(GL_FRAMEBUFFER_SRGB);
+		glEnable(GL_FRAMEBUFFER_SRGB);
 
 		// rendering
 		glClearColor(0.6f, 0.6f, 0.6f, 0.0f);

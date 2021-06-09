@@ -10,4 +10,4 @@ ke 0.000000 0.000000 0.000000
 illum 2
 map_Kd Test_beforeUV_1001_Diffuse.png
 map_Ks Test_beforeUV_1001_Specular.png
-map_Bump Test_beforeUV_1001_Normal.png
+map_Kn Test_beforeUV_1001_Normal.png

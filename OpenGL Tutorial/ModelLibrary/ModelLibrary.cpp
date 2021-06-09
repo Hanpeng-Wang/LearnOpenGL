@@ -259,7 +259,7 @@ void Mesh::SetUp()
 
 void Mesh::Draw(Shader& shader)
 {
-
+	shader.Use();
 
 	for (int i = 0; i < textures.size(); i++)
 	{
@@ -274,7 +274,7 @@ void Mesh::Draw(Shader& shader)
 
 	}
 
-	shader.SetUniformInt("material.shiness", 333);
+	shader.SetUniformf("material.shiness", 32.0);
 
 	//bind vertex array
 	glBindVertexArray(VAO);
@@ -429,12 +429,12 @@ unsigned int Model::LoadGenTexture(const std::string& filename,aiTextureType typ
 		break;
 	case 3:
 		format = GL_RGB;
-		if (type == aiTextureType_DIFFUSE) Internalformat = GL_RGB;
+		if (type == aiTextureType_DIFFUSE) Internalformat = GL_SRGB;
 		else Internalformat = GL_RGB;	
 		break;
 	case 4:
 		format = GL_RGBA;
-		if (type == aiTextureType_DIFFUSE) Internalformat = GL_RGBA;
+		if (type == aiTextureType_DIFFUSE) Internalformat = GL_SRGB8_ALPHA8;
 		else Internalformat = GL_RGBA;
 		break;
 

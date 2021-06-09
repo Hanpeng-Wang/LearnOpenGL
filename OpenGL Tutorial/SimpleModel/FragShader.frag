@@ -110,7 +110,7 @@ vec3 ComputeDirlight(bool Blin_Phong)
 
    vec3 Color1 = (ambientStren + diffuseStren)* texture(material.diffuseMap, TexCoord_frag).rgb;
    vec3 Color2 = specularStren*texture(material.specularMap,TexCoord_frag).rgb;
-   return(Color2);
+   return(Color1 + Color2);
 }
 
 
@@ -152,7 +152,7 @@ vec3 ComputePointlight(bool Blin_Phong)
 
    vec3 Color1 = (ambientStren + diffuseStren)*texture(material.diffuseMap,TexCoord_frag).rgb;
    vec3 Color2 = specularStren*texture(material.specularMap,TexCoord_frag).rgb;
-   return (Color2);
+   return (Color1 + Color2);
 }
    
 
