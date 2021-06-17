@@ -6,6 +6,7 @@ struct Material
 {
   sampler2D diffuseMap;
   sampler2D specularMap;
+  sampler2D normalMap;
   float shiness;
 };
 
@@ -31,8 +32,8 @@ struct DirectionLight
 };
 
 in vec2 TexCoord_frag;
-in vec3 wNormal;
 in vec3 wPosition;
+in mat3 TBN;
 
 out vec4 FragColor;
 
@@ -50,11 +51,13 @@ uniform DirectionLight Dirlights[MAX_NUM_LIGHTS];
 
 vec3 ComputeDirlight(bool Blin_Phong);
 vec3 ComputePointlight(bool Blin_Phong);
+vec3 FetchNormal();
+
 
 void main()
 {
   vec3 PointlightColor;
-   vec3 DirlightColor;
+  vec3 DirlightColor;
   if(Blin)
   {
    PointlightColor = ComputePointlight(true);
@@ -73,13 +76,21 @@ void main()
   FragColor = vec4(mapped, 1.0);
 }
 
+vec3 FetchNormal()
+{
+  vec3 Normals =  2 * texture(material.normalMap, TexCoord_frag).rgb  - 1.0;
+  Normals = normalize(TBN * Normals);
+
+  return Normals;
+} 
 
 vec3 ComputeDirlight(bool Blin_Phong)
 {
    vec3 ambientStren = vec3(0.0);
    vec3 diffuseStren = vec3(0.0);
    vec3 specularStren = vec3(0.0);
-   vec3 Normals = normalize(wNormal);
+   vec3 Normals =  FetchNormal();
+
 
    for(int i=0; i<DirlightNum; i++)
    {
@@ -119,7 +130,7 @@ vec3 ComputePointlight(bool Blin_Phong)
    vec3 ambientStren = vec3(0.0);
    vec3 diffuseStren = vec3(0.0);
    vec3 specularStren = vec3(0.0);
-    vec3 Normals = normalize(wNormal);
+   vec3 Normals =  FetchNormal();
 
    for(int i=0; i<PointlightNum; i++)
    {

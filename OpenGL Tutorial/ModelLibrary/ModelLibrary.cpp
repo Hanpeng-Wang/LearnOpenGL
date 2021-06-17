@@ -249,6 +249,9 @@ void Mesh::SetUp()
 	//TexCoords
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 	glEnableVertexAttribArray(2);
+	//Tangents
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangents));
+	glEnableVertexAttribArray(3);
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -272,6 +275,9 @@ void Mesh::Draw(Shader& shader)
 		if (textures[i].type == "texture_specular")
 			shader.SetUniformInt("material.specularMap", i);
 
+		if (textures[i].type == "texture_normals")
+			shader.SetUniformInt("material.normalMap", i);
+
 	}
 
 	shader.SetUniformf("material.shiness", 32.0);
@@ -287,7 +293,7 @@ void Mesh::Draw(Shader& shader)
 void Model::LoadModel(const std::string& Modelfile)
 {
 	Assimp::Importer import;
-	const aiScene* scene = import.ReadFile(Modelfile, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
+	const aiScene* scene = import.ReadFile(Modelfile, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
@@ -333,6 +339,9 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			V.TexCoords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 		else
 			V.TexCoords = glm::vec2(0.0f);
+
+		// Tangents
+		V.Tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 
 		vertices.push_back(V);
 	}

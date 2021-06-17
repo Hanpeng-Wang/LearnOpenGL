@@ -2,10 +2,11 @@
 layout (location = 0) in vec3 Pos;
 layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec2 TexCoord;
+layout (location = 3) in vec3 Tangent;
 
 out vec2 TexCoord_frag;
-out vec3 wNormal;
 out vec3 wPosition;
+out mat3 TBN;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -17,7 +18,15 @@ void main()
     
     TexCoord_frag = TexCoord;
 
-    wNormal = normalize(transpose(inverse(mat3(model))) * Normal);
+    
+
+    // calculate TBN matrix
+    vec3 N = normalize(transpose(inverse(mat3(model))) * Normal);
+    vec3 T = normalize(mat3(model) * Tangent);
+    T = normalize(T - dot(T, N) * N);
+    vec3 B = cross(N, T);
+    TBN = mat3(T, B, N);
+
 
     wPosition = vec3(model * vec4(Pos,1.0f));
 }

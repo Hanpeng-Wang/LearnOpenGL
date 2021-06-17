@@ -151,21 +151,21 @@ int main(int argc, char** argv)
 	LightSource pointLight(glm::vec3(0.2f), glm::vec3(0.8f), glm::vec3(1.0f));
 	pointLight.SetPointlight(glm::vec3(3.0f, 3.0f, 3.0f), 1.0f, 0.09f, 0.032f);
 
-	LightSource DirLight(glm::vec3(0.2f), glm::vec3(1.0f), glm::vec3(1.0f));
+	LightSource DirLight(glm::vec3(0.2f), glm::vec3(0.8f), glm::vec3(1.0f));
 	DirLight.SetDirlight(glm::vec3(0, -1.0f, 0.0f));
 	
 	//------------------------------------------------------------------------------------
 	Shader shader(vertPath, fragPath);
 
 	shader.Use();
-	/*shader.SetUniformInt("PointlightNum", 1);
+	shader.SetUniformInt("PointlightNum", 1);
 	shader.SetUniformVec3("pointlights[0].lightPos",glm::value_ptr(pointLight.lightPos));
 	shader.SetUniformVec3("pointlights[0].ambient",glm::value_ptr(pointLight.ambient));
 	shader.SetUniformVec3("pointlights[0].diffuse",glm::value_ptr(pointLight.diffuse));
 	shader.SetUniformVec3("pointlights[0].specular",glm::value_ptr(pointLight.specular));
 	shader.SetUniformf("pointlights[0].constant", pointLight.constant);
 	shader.SetUniformf("pointlights[0].linear", pointLight.linear);
-	shader.SetUniformf("pointlights[0].quadratic", pointLight.quadratic);*/
+	shader.SetUniformf("pointlights[0].quadratic", pointLight.quadratic);
 
 	shader.SetUniformInt("DirlightNum", 1);
 	shader.SetUniformVec3("Dirlights[0].lightDir",glm::value_ptr(DirLight.lightDir));
