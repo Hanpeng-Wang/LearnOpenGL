@@ -8,9 +8,14 @@ out vec2 TexCoord_frag;
 out vec3 wPosition;
 out mat3 TBN;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+
+layout (std140) uniform Matrices
+{
+   mat4 model;        // offset 0          // base 64
+   mat4 view;         // offset 64          // base 64
+   mat4 projection;   // offset 128         // base 64
+};                    // size 192 bytes
+
 
 void main()
 {

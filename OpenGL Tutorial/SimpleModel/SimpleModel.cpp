@@ -177,39 +177,41 @@ int main(int argc, char** argv)
 	Shader Nview_shader(Nview_vertpath,Nview_fragpath);
 	Nview_shader.SetUpGeometryShader(Nview_geompath);
 
-	Shader ScreenQuad(Screen_vertpath,Screen_fragpath);
+	/*Shader ScreenQuad(Screen_vertpath,Screen_fragpath);
 	ScreenQuad.Use();
-	ScreenQuad.SetUniformInt("QuadTexture",0);
+	ScreenQuad.SetUniformInt("QuadTexture",0);*/
 
 	//------------------------------------------------------------------------------------
 	// configure framebuffer obj
-	unsigned int hdrFBO;
-	glGenFramebuffers(1, &hdrFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER,hdrFBO);
+	//unsigned int hdrFBO;
+	//glGenFramebuffers(1, &hdrFBO);
+	//glBindFramebuffer(GL_FRAMEBUFFER,hdrFBO);
 
-	// color buffer
-	unsigned int colorbuffer;
-	glGenTextures(1,&colorbuffer);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, colorbuffer);
-	glTexImage2D(GL_TEXTURE_2D,0,GL_RGB16F,800,600,0,GL_RGB,GL_FLOAT,NULL);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,colorbuffer,0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	 
-	//depth and stencil buffer
-	unsigned int DepthRBO;
-	glGenRenderbuffers(1, &DepthRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER,DepthRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,800,600);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,DepthRBO);
+	//// color buffer
+	//unsigned int colorbuffer;
+	//glGenTextures(1,&colorbuffer);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, colorbuffer);
+	//glTexImage2D(GL_TEXTURE_2D,0,GL_RGB16F,800,600,0,GL_RGB,GL_FLOAT,NULL);
+	//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,colorbuffer,0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	// 
+	////depth and stencil buffer
+	//unsigned int DepthRBO;
+	//glGenRenderbuffers(1, &DepthRBO);
+	//glBindRenderbuffer(GL_RENDERBUFFER,DepthRBO);
+	//glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,800,600);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,DepthRBO);
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	//	std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	unsigned int quadVAO;
+	//------------------------------------------------------------------------------------
+	// configure quad vertex data for framebuffer object 
+	/*unsigned int quadVAO;
 	unsigned int quadVBO;
 	glGenVertexArrays(1,&quadVAO);
 	glGenBuffers(1, &quadVBO);
@@ -220,8 +222,24 @@ int main(int argc, char** argv)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 
+
+	//------------------------------------------------------------------------------------
+	// configure uniform buffer object
+	unsigned int uboMatrices;
+	glGenBuffers(1, &uboMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+	glBufferData(GL_UNIFORM_BUFFER, 3 * sizeof(glm::mat4), NULL, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboMatrices);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// bind uniform block in shader to bdingding point 0
+	shader.Use();
+	glUniformBlockBinding(shader.ProgramID, glGetUniformBlockIndex(shader.ProgramID, "Matrices"), 0);
+
+	Nview_shader.Use();
+	glUniformBlockBinding(Nview_shader.ProgramID, glGetUniformBlockIndex(Nview_shader.ProgramID, "Matrices"), 0);
 
 
 	// rendering loop
@@ -240,24 +258,23 @@ int main(int argc, char** argv)
 
 		//glViewport(0,0,800,600);
 
+		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(camera->GetModelMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera->GetViewMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera->GetProjectionMatrix()));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 		shader.Use();
 		shader.SetUniformInt("Blin",Blin_Phone);
 		shader.SetUniformInt("w",window_w);
 		shader.SetUniformInt("ifspec",Showspec);
 		shader.SetUniformVec3("wCameraPos",glm::value_ptr(camera->CameraPos));
-		shader.SetUniformMat4("model",GL_FALSE,glm::value_ptr(camera->GetModelMatrix()));
-		shader.SetUniformMat4("view",GL_FALSE,glm::value_ptr(camera->GetViewMatrix()));
-		shader.SetUniformMat4("projection", GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
-		
+
 		model.Draw(shader);
 		//------------------------------------------------------------------------------------
 		if (ShowNormal)
 		{
 			Nview_shader.Use();
-			Nview_shader.SetUniformMat4("model", GL_FALSE, glm::value_ptr(camera->GetModelMatrix()));
-			Nview_shader.SetUniformMat4("view", GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
-			Nview_shader.SetUniformMat4("projection", GL_FALSE, glm::value_ptr(camera->GetProjectionMatrix()));
-
 			model.Draw(Nview_shader);
 		}
 

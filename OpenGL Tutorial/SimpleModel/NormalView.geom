@@ -4,7 +4,12 @@ layout(triangles) in;
 layout (line_strip,max_vertices = 2) out;
 
 in vec3 vNormal[];
-uniform mat4 projection;
+layout (std140) uniform Matrices
+{
+   mat4 model;        // offset 0          // base 64
+   mat4 view;         // offset 64          // base 64
+   mat4 projection;   // offset 128         // base 64
+};  
 
 vec4 ComputeNormalV(in vec3 Normal, in vec4 Pos);
 

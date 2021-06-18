@@ -3,6 +3,17 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 
+
+bool isEqual(float x, float y)
+{
+	return std::abs(x - y) < FLT_MIN;
+}
+
+bool isEqual(double x, double y)
+{
+	return std::abs(x - y) < FLT_MIN;
+}
+
 std::ostream& operator <<(std::ostream& out, const glm::vec3 p)
 {
 	out << p.x << ", " << p.y << ", " << p.z;
@@ -32,7 +43,15 @@ void Camera::SetPerspective(float fov, float w, float h, float near, float far)
 	this->near = near;
 	this->far = far;
 
-	this->projection = glm::perspective(glm::radians(fov), w / h, near, far);
+	if (isEqual(h, (float)0.0))
+	{
+		this->projection = glm::perspective(glm::radians(fov), (float)1.0, near, far);
+	}
+	else
+	{
+		this->projection = glm::perspective(glm::radians(fov), w / h, near, far);
+	}
+	
 }
 
 void Camera::SetSensitivity(float s)

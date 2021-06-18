@@ -341,7 +341,15 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 			V.TexCoords = glm::vec2(0.0f);
 
 		// Tangents
-		V.Tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		if (mesh->HasTangentsAndBitangents())
+		{
+			V.Tangents = glm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		}
+		else
+		{
+			V.Tangents = glm::vec3(0.0);
+		}
+		
 
 		vertices.push_back(V);
 	}
@@ -366,6 +374,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		std::vector<Texture> diffuse = LoadMaterialTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
 		std::vector<Texture> specular = LoadMaterialTexture(material, aiTextureType_SPECULAR, "texture_specular");
 		std::vector<Texture> normal = LoadMaterialTexture(material, aiTextureType_NORMALS, "texture_normals");
+		std::vector<Texture> height = LoadMaterialTexture(material, aiTextureType_HEIGHT, "texture_heights");
 		textures.insert(textures.end(), diffuse.begin(), diffuse.end());
 		textures.insert(textures.end(), specular.begin(), specular.end());
 		textures.insert(textures.end(), normal.begin(), normal.end());

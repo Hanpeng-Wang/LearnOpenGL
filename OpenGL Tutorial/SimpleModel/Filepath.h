@@ -12,6 +12,6 @@ std::string Screen_fragpath = "D:/LearnOpenGL/OpenGL Tutorial/SimpleModel/Screen
 
 std::string TexImage1 = "./wall.jpg";
 std::string TexImage2 = "./awesomeface.png";
-std::string ModelPath = "D:/LearnOpenGL/3D model/Test_beforeUV/Test_beforeUV.obj";
+std::string ModelPath = "D:/LearnOpenGL/3D model/StoneSphere/StoneSphere.obj";
 //std::string ModelPath = "D:/LearnOpenGL/3D model/backpack/backpack.obj";
 
